@@ -1,9 +1,22 @@
 {
-  "extends": "airbnb-base",
+  "extends": [
+    "eslint:recommended",
+    "plugin:@typescript-eslint/recommended",
+    "plugin:@typescript-eslint/recommended-requiring-type-checking"
+  ],
+  "parser": "@typescript-eslint/parser",
+  "parserOptions": {
+    "project": "./tsconfig.json",
+    "sourceType": "module"
+  },
+  "plugins": [
+    "@typescript-eslint"
+  ],
   "env": {
     "node": true,
     "mocha": true
   },
+  "ignorePatterns": ["lib/", "dist/", "node_modules/", "tests/", "bench/", "*.js"],
   "rules": {
     "object-curly-newline": 0,
     "no-else-return": 0,
@@ -23,7 +36,6 @@
     "no-plusplus": 0,
     "no-mixed-operators": 0,
     "no-param-reassign": 0,
-    "no-unused-vars": 1,
     "prefer-const": 0,
     "comma-dangle": 0,
     "spaced-comment": 0,
@@ -39,7 +51,7 @@
     "no-var": 0,
     "vars-on-top": 0,
     "no-lonely-if": 0,
-    template-curly-spacing: 0,
-    object-property-newline: 0
+    "template-curly-spacing": 0,
+    "object-property-newline": 0
   }
 }
