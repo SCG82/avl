@@ -128,14 +128,18 @@ class AVLTree<K, V> {
     /** Array of all keys, in order */
     keys(): Array<K> {
         const r: Array<K> = []
-        this.forEach((node) => r.push(node.key as K))
+        this.forEach((node) => {
+            r.push(node.key as K)
+        })
         return r
     }
 
     /** Array of `data` field values of all nodes, in order */
     values(): Array<V> {
         const r: Array<V> = []
-        this.forEach((node) => r.push(node.data as V))
+        this.forEach((node) => {
+            r.push(node.data as V)
+        })
         return r
     }
 

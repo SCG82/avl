@@ -1,5 +1,5 @@
 /**
- * avl v1.6.0
+ * avl v2.0.0
  * Fast AVL tree for Node and browser
  *
  * @author Alexander Milevski <info@w8r.name>
@@ -272,13 +272,17 @@
     /** Array of all keys, in order */
     AVLTree.prototype.keys = function keys () {
         var r = [];
-        this.forEach(function (node) { return r.push(node.key); });
+        this.forEach(function (node) {
+            r.push(node.key);
+        });
         return r;
     };
     /** Array of `data` field values of all nodes, in order */
     AVLTree.prototype.values = function values () {
         var r = [];
-        this.forEach(function (node) { return r.push(node.data); });
+        this.forEach(function (node) {
+            r.push(node.data);
+        });
         return r;
     };
     /** Return node at given `index` */
