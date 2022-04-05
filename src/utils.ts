@@ -144,8 +144,8 @@ export function loadRecursive<K = unknown, V = unknown>(
     if (size > 0) {
         const middle = start + Math.floor(size / 2)
         const key = keys[middle]
-        const data = values[middle]
-        const node: Node<K, V> = { key, data, parent, balanceFactor: 0 }
+        const value = values[middle]
+        const node: Node<K, V> = { key, value, parent, balanceFactor: 0 }
         node.left = loadRecursive(node, keys, values, start, middle)
         node.right = loadRecursive(node, keys, values, middle + 1, end)
         return node

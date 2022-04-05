@@ -1,8 +1,11 @@
 {
+  "root": true,
   "extends": [
     "eslint:recommended",
+    "plugin:@typescript-eslint/eslint-recommended",
     "plugin:@typescript-eslint/recommended",
-    "plugin:@typescript-eslint/recommended-requiring-type-checking"
+    "plugin:@typescript-eslint/recommended-requiring-type-checking",
+    "plugin:prettier/recommended"
   ],
   "parser": "@typescript-eslint/parser",
   "parserOptions": {
@@ -14,7 +17,8 @@
   ],
   "env": {
     "node": true,
-    "mocha": true
+    "mocha": true,
+    "es2020": true
   },
   "ignorePatterns": ["lib/", "dist/", "node_modules/", "tests/", "bench/", "*.js"],
   "rules": {
@@ -52,6 +56,9 @@
     "vars-on-top": 0,
     "no-lonely-if": 0,
     "template-curly-spacing": 0,
-    "object-property-newline": 0
+    "object-property-newline": 0,
+    "prettier/prettier": ["warn", {}, {
+      "usePrettierrc": true
+    }]
   }
 }

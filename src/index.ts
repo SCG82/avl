@@ -23,8 +23,8 @@ import {
  * operation.
  */
 class AVLTree<K, V> {
-    private _comparator: Comparator<K>
-    private _root: Node<K, V> | undefined
+    private readonly _comparator: Comparator<K>
+    private _root?: Node<K, V>
     private _size = 0
     private _noDuplicates: boolean
 
@@ -38,20 +38,20 @@ class AVLTree<K, V> {
         return this._size
     }
 
-    /** Clear the tree */
-    clear(): AVLTree<K, V> {
+    /** Clears the tree */
+    clear(): this {
         delete this._root
         this._size = 0
         return this
     }
 
-    /** Clear the tree (alias for `clear`) */
+    /** Clears the tree (alias for `clear`) */
     destroy(): AVLTree<K, V> {
         return this.clear()
     }
 
     /** Check if tree contains a node with the given key */
-    contains(key: K): boolean {
+    has(key: K): boolean {
         if (this._root) {
             let node: Node<K, V> | undefined = this._root
             const comparator = this._comparator
@@ -66,31 +66,29 @@ class AVLTree<K, V> {
     }
 
     /**
-     * Execute `callback` on every node of the tree, in order.
+     * Executes a callback for each node in order.
      * Return a 'truthy' value from `callback` to stop the iteration.
+     *
+     * **Note: Make sure the callback does not unintentionally return a truthy value!**
      */
-    forEach(callback: ForEachCallback<K, V>): AVLTree<K, V> {
-        let current: Node<K, V> | undefined = this._root
+    forEach(callback: ForEachCallback<K, V>): this {
+        let node = this._root
         const s: Array<Node<K, V>> = []
         let done: boolean | undefined = false
         let i = 0
         while (!done) {
-            // Reach the left most Node of the current Node
-            if (current) {
-                // Place pointer to a tree node on the stack
-                // before traversing the node's left subtree
-                s.push(current)
-                current = current.left
+            // First, traverse the left subtree, storing a pointer to each node
+            // in the stack, until reaching the leftmost node.
+            // Then, backtrack from the empty subtree and traverse the right subtree
+            // of the node at the top of the stack. Continue until the stack is empty.
+            if (node) {
+                s.push(node)
+                node = node.left
             } else {
-                // Backtrack from the empty subtree and visit the Node
-                // at the top of the stack; however, if the stack is
-                // empty you are done
                 if (s.length > 0) {
-                    current = s.pop() as Node<K, V>
-                    done = !!callback(current, i++)
-                    // We have visited the node and its left
-                    // subtree. Now, it is the right subtree's turn
-                    current = current.right
+                    node = s.pop() as Node<K, V>
+                    done = !!callback(node, i++)
+                    node = node.right
                 } else {
                     done = true
                 }
@@ -99,13 +97,8 @@ class AVLTree<K, V> {
         return this
     }
 
-    /** Walk key range from `low` to `high`. Stop if `fn` returns a value. */
-    range(
-        low: K,
-        high: K,
-        fn: TraverseCallback<K, V>,
-        ctx?: unknown,
-    ): AVLTree<K, V> {
+    /** Walks key range from `low` to `high`. Stop if `fn` returns a value. */
+    range(low: K, high: K, fn: TraverseCallback<K, V>, ctx?: unknown): this {
         const Q: Array<Node<K, V>> = []
         const compare = this._comparator
         let node = this._root
@@ -135,21 +128,30 @@ class AVLTree<K, V> {
     keys(): Array<K> {
         const r: Array<K> = []
         this.forEach((node) => {
-            r.push(node.key as K)
+            r.push(node.key)
         })
         return r
     }
 
-    /** Array of `data` field values of all nodes, in order */
+    /** Array of all values, in order */
     values(): Array<V> {
         const r: Array<V> = []
         this.forEach((node) => {
-            r.push(node.data as V)
+            r.push(node.value as V)
         })
         return r
     }
 
-    /** Return node at given `index` */
+    /** Array of all entries ([key, value]), in order */
+    entries(): Array<[K, V]> {
+        const r: Array<[K, V]> = []
+        this.forEach((node) => {
+            r.push([node.key, node.value as V])
+        })
+        return r
+    }
+
+    /** Returns node at given `index` */
     at(index: number): Node<K, V> | undefined {
         let r: Node<K, V> | undefined
         this.forEach((node, i) => {
@@ -158,7 +160,7 @@ class AVLTree<K, V> {
         return r
     }
 
-    /** Return node with the minimum key */
+    /** Returns node with the minimum key */
     minNode(): Node<K, V> | undefined {
         let node = this._root
         if (!node) return
@@ -168,7 +170,7 @@ class AVLTree<K, V> {
         return node
     }
 
-    /** Return node with the maximum key */
+    /** Returns node with the maximum key */
     maxNode(): Node<K, V> | undefined {
         let node = this._root
         if (!node) return
@@ -178,68 +180,67 @@ class AVLTree<K, V> {
         return node
     }
 
-    /** Return the minimum key */
+    /** Returns the minimum key */
     min(): K | undefined {
         const node = this.minNode()
         if (!node) return
         return node.key
     }
 
-    /** Return the maximum key */
+    /** Returns the maximum key */
     max(): K | undefined {
         const node = this.maxNode()
         if (!node) return
         return node.key
     }
 
-    /** Return true if tree is empty */
+    /** Returns true if tree is empty */
     isEmpty(): boolean {
         return !this._root
     }
 
-    /** Remove (and return) the node with minimum key */
-    pop(): BareNode<K, V> | undefined {
+    /** Removes (and returns) the entry with minimum key */
+    shift(): BareNode<K, V> | undefined {
         let node = this._root
         let returnValue: BareNode<K, V> | undefined
         if (node) {
             while (node.left) {
                 node = node.left
             }
-            returnValue = { key: node.key, data: node.data }
-            this.remove(node.key)
+            returnValue = { key: node.key, value: node.value }
+            this.delete(node.key)
         }
         return returnValue
     }
 
-    /** Remove (and return) the node with maximum key */
-    popMax(): BareNode<K, V> | undefined {
+    /** Removes (and returns) the entry with maximum key */
+    pop(): BareNode<K, V> | undefined {
         let node = this._root
         let returnValue: BareNode<K, V> | undefined
         if (node) {
             while (node.right) {
                 node = node.right
             }
-            returnValue = { key: node.key, data: node.data }
-            this.remove(node.key)
+            returnValue = { key: node.key, value: node.value }
+            this.delete(node.key)
         }
         return returnValue
     }
 
-    /** Find node by key */
-    find(key: K): Node<K, V> | undefined {
-        let subtree = this._root
-        let cmp: number
+    /** Search for an entry by key */
+    get(key: K): V | undefined {
         const compare = this._comparator
-        while (subtree) {
-            cmp = compare(key, subtree.key)
-            if (cmp === 0) return subtree
-            else if (cmp < 0) subtree = subtree.left
-            else subtree = subtree.right
+        let node = this._root
+        while (node) {
+            const cmp = compare(key, node.key)
+            if (cmp === 0) return node.value
+            else if (cmp < 0) node = node.left
+            else node = node.right
         }
     }
 
-    /** Insert a node into the tree */
-    insert(key: K, data?: V): Node<K, V> | undefined {
+    /** Insert a new key/value pair into the tree or update an existing entry */
+    set(key: K, value?: V): this {
         if (!this._root) {
             this._root = {
                 parent: undefined,
@@ -247,24 +248,29 @@ class AVLTree<K, V> {
                 right: undefined,
                 balanceFactor: 0,
                 key,
-                data,
+                value,
             }
             this._size++
-            return this._root
+            return this
         }
 
         const compare = this._comparator
         let node: Node<K, V> | undefined = this._root
-        let parent: Node<K, V> | undefined = this._root
+        let parent: Node<K, V> | undefined
         let cmp = 0
 
         if (this._noDuplicates) {
             while (node) {
                 cmp = compare(key, node.key)
                 parent = node
-                if (cmp === 0) return
-                else if (cmp < 0) node = node.left
-                else node = node.right
+                if (cmp === 0) {
+                    node.value = value
+                    return this
+                } else if (cmp < 0) {
+                    node = node.left
+                } else {
+                    node = node.right
+                }
             }
         } else {
             while (node) {
@@ -275,17 +281,23 @@ class AVLTree<K, V> {
             }
         }
 
+        if (parent == undefined) {
+            throw new Error(`failed to find parent node for insert`)
+        }
+
         const newNode: Node<K, V> = {
             left: undefined,
             right: undefined,
             balanceFactor: 0,
             parent,
             key,
-            data,
+            value,
         }
-        let newRoot: Node<K, V> | undefined
+
         if (cmp <= 0) parent.left = newNode
         else parent.right = newNode
+
+        let newRoot: Node<K, V> | undefined
 
         while (parent) {
             cmp = compare(parent.key, key)
@@ -317,12 +329,18 @@ class AVLTree<K, V> {
         }
 
         this._size++
-        return newNode
+        return this
     }
 
-    /** Remove the node from the tree. */
-    remove(key: K | undefined): K | undefined {
-        if (!this._root || !key) return
+    /** Insert a new key/value pair into the tree or update an existing entry (alias for `set`) */
+    insert(key: K, value?: V): this {
+        return this.set(key, value)
+    }
+
+    /** Finds the first matching node by key and removes it. Returns true if successful. */
+    delete(key: K | undefined): boolean {
+        if (!this._root || !key) return false
+
         let node: Node<K, V> | undefined = this._root
         const compare = this._comparator
         let cmp = 0
@@ -330,15 +348,14 @@ class AVLTree<K, V> {
         // Start at the root, advance down the tree checking for a match.
         while (node) {
             cmp = compare(key, node.key)
-            if (cmp === 0) break
             // found it!
+            if (cmp === 0) break
             else if (cmp < 0) node = node.left
             else node = node.right
         }
         // If we reached the end of the tree, the key is not in the tree.
-        if (!node) return
+        if (!node) return false
 
-        const returnValue = node.key
         let max: Node<K, V>
         let min: Node<K, V>
 
@@ -350,7 +367,7 @@ class AVLTree<K, V> {
                     max = max.right
                 }
                 node.key = max.key
-                node.data = max.data
+                node.value = max.value
                 if (max.left) {
                     node = max
                     max = max.left
@@ -358,7 +375,7 @@ class AVLTree<K, V> {
             }
 
             node.key = max.key
-            node.data = max.data
+            node.value = max.value
             node = max
         }
 
@@ -370,7 +387,7 @@ class AVLTree<K, V> {
                     min = min.left
                 }
                 node.key = min.key
-                node.data = min.data
+                node.value = min.value
                 if (min.right) {
                     node = min
                     min = min.right
@@ -378,7 +395,7 @@ class AVLTree<K, V> {
             }
 
             node.key = min.key
-            node.data = min.data
+            node.value = min.value
             node = min
         }
 
@@ -430,7 +447,7 @@ class AVLTree<K, V> {
         }
 
         this._size--
-        return returnValue
+        return true
     }
 
     /** Bulk-load items (into an empty tree only) */
@@ -451,10 +468,10 @@ class AVLTree<K, V> {
 
     /** String representation of the tree - primitive horizontal print-out */
     toString(printNode?: (node: Node<K, V>) => string) {
-        return print(this._root, printNode)
+        return print(this._root, printNode).trim()
     }
 
-    /** Successor node */
+    /** Return the node immediately after the given node in the in-order traversal */
     static next<K = unknown, V = unknown>(
         node: Node<K, V>,
     ): Node<K, V> | undefined {
@@ -474,7 +491,7 @@ class AVLTree<K, V> {
         return successor
     }
 
-    /** Predecessor node */
+    /** Return the node immediately before the given node in the in-order traversal */
     static prev<K = unknown, V = unknown>(
         node: Node<K, V>,
     ): Node<K, V> | undefined {
