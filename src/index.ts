@@ -124,31 +124,67 @@ class AVLTree<K, V> {
         return this
     }
 
-    /** Array of all keys, in order */
-    keys(): Array<K> {
-        const r: Array<K> = []
-        this.forEach((node) => {
-            r.push(node.key)
-        })
-        return r
+    /** Returns all keys, in order */
+    *keys(): IterableIterator<K> {
+        let node = this._root
+        const s: Array<Node<K, V>> = []
+        let done = false
+        while (!done) {
+            if (node) {
+                s.push(node)
+                node = node.left
+            } else {
+                if (s.length > 0) {
+                    node = s.pop() as Node<K, V>
+                    yield node.key
+                    node = node.right
+                } else {
+                    done = true
+                }
+            }
+        }
     }
 
-    /** Array of all values, in order */
-    values(): Array<V> {
-        const r: Array<V> = []
-        this.forEach((node) => {
-            r.push(node.value as V)
-        })
-        return r
+    /** Returns all values, in order */
+    *values(): IterableIterator<V | undefined> {
+        let node = this._root
+        const s: Array<Node<K, V>> = []
+        let done = false
+        while (!done) {
+            if (node) {
+                s.push(node)
+                node = node.left
+            } else {
+                if (s.length > 0) {
+                    node = s.pop() as Node<K, V>
+                    yield node.value
+                    node = node.right
+                } else {
+                    done = true
+                }
+            }
+        }
     }
 
-    /** Array of all entries ([key, value]), in order */
-    entries(): Array<[K, V]> {
-        const r: Array<[K, V]> = []
-        this.forEach((node) => {
-            r.push([node.key, node.value as V])
-        })
-        return r
+    /** Returns all [key, value] entries, in order */
+    *entries(): IterableIterator<[K, V | undefined]> {
+        let node = this._root
+        const s: Array<Node<K, V>> = []
+        let done = false
+        while (!done) {
+            if (node) {
+                s.push(node)
+                node = node.left
+            } else {
+                if (s.length > 0) {
+                    node = s.pop() as Node<K, V>
+                    yield [node.key, node.value]
+                    node = node.right
+                } else {
+                    done = true
+                }
+            }
+        }
     }
 
     /** Returns node at given `index` */
